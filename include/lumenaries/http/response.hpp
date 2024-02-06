@@ -1,7 +1,5 @@
 #pragma once
 
-#include "lumenaries/http/request.hpp"
-
 #include "esp_http_server.h"
 
 #include <string>
@@ -37,28 +35,48 @@ namespace lumenaries::http {
 /** \class Response http/Response lumenaries/http/Response
  *  \brief An object representing a server response to an HTTP request.
  *
- * You will typically only interact with an http::Response object when it is
- * passed as a parameter in a request callback.
+ * You should only ever interact with this object in the context of an HTTP
+ * request callback function.
+ *
+ * \note
+ * - If you need to save any information from the corresponding Request object
+ * for future use, you should do so before you calling Response::send() or
+ * Response::write();
  *
  * Usage example:
  * \code
- * auto handler = [](auto const& request, auto& response) {
+ * namespace http = lumenaries::http;
+ * auto callback = [](http::Request const& request, http::Response& response) {
  *     response.set_header("Cache", "no-cache");
  *     response.send("<h1>Hello world!</h1>");
  * };
  * \endcode
  *
- * \sa http::Request
+ * \sa Request
  */
 class Response {
 public:
     /** \brief Creates a response object.
-     * \param request The request being responded to.
+     * \param request The `esp_http_server` request being responded to.
      */
     explicit Response(httpd_req_t* request);
 
-    /** \brief Set the response status.
+    /** \brief Set the status of the response.
+     *
+     * This sets the status of the HTTP response to the specified value. The
+     * status text will be filled in based on the status code. default value is
+     * "200".
+     *
+     * \note
+     *  - This function only sets the status. The status
+     *    isn't sent out until one of the send functions are executed.
+     *
      * \param status The response status to be set.
+     *
+     * \return
+     *  - ESP_OK   : On success
+     *  - ESP_ERR_HTTPD_INVALID_REQ : Invalid request pointer
+     *
      */
     esp_err_t set_status(int status);
 
@@ -82,9 +100,28 @@ public:
 
     esp_err_t set_content_type(std::string const& value);
 
-    /** \brief Set a field in the response header
-     * \param field The header field to set.
-     * \param value The value of the field to set.
+    /** \brief Set a field in the response header.
+     *
+     * This sets any additional fields that need to be sent in the response
+     * header.
+     *
+     * \note
+     *  - This function only sets header fields. The header fields
+     *    aren't sent out until one of the send functions are executed.
+     *  - The maximum allowed number of additional headers is limited to
+     *        value of `max_resp_headers` in config structure.
+     *
+     *  \todo Allow configuration of `max_resp_headers` in config structure
+     *
+     * \param field The header field to be set.
+     * \param value The value of the field to be set.
+     *
+     * \return
+     *  - ESP_OK : On successfully appending new header
+     *  - ESP_ERR_HTTPD_RESP_HDR    : Total additional headers exceed max
+     *    allowed
+     *  - ESP_ERR_HTTPD_INVALID_REQ : Invalid request pointer
+
      */
     esp_err_t set_header(std::string const& field, std::string const& value);
 
@@ -92,11 +129,11 @@ public:
      *
      * This will send an HTTP response to the request.
      * This assumes that you have the entire response ready in a single
-     * buffer. If you wish to send response in incremental chunks use
+     * buffer. If you wish to send a response in incremental chunks use
      * Response::write() instead.
      *
-     * If no status code and content-type were set, by default this
-     * will send 200 OK status code and content type as text/html.
+     * If no status code and no content type were set, by default this
+     * will send status code: 200 and content type: "text/html".
      *
      * \note
      *  - Once this function is called, the request has been responded to and
@@ -112,25 +149,29 @@ public:
      * internal buffer
      *  - ESP_ERR_HTTPD_RESP_SEND   : Error in raw send
      *  - ESP_ERR_HTTPD_INVALID_REQ : Invalid request
+     *
+     *  \sa Response::write()
      */
     esp_err_t send(std::string const& buffer);
 
     /**
-     * \brief Send an HTTP chunk
+     * \brief Send a chunked HTTP response.
      *
      * This will send an HTTP response to the request using chunked-encoding.
      * This API will use chunked-encoding and send the response in the form of
      * chunks. If you have the entire response contained in a single buffer,
      * please use Response::send() instead.
      *
-     * If no status code and content-type were set, by default this
-     * will send 200 OK status code and content type as text/html.
+     * If no status code and no content type were set, by default this
+     * will send status code: 200 and content type: "text/html".
      *
      * \note
-     *  - When you are finished sending all your chunks, you must call
-     *    this function without any arguments to signify the end of the message.
      *  - Once this function is called, all request headers are purged, so
      *    request headers need be copied if they are required later.
+     *  - When you are finished sending all your chunks, you must call
+     *    this function without any arguments to signify the end of the message.
+     *  - Once this function is called with no arguments, the request has been
+     *    responded to and no additional data can be sent.
      *
      * \param buffer The response data to be sent
      *
@@ -140,12 +181,26 @@ public:
      * internal buffer
      *  - ESP_ERR_HTTPD_RESP_SEND   : Error in raw send
      *  - ESP_ERR_HTTPD_INVALID_REQ : Invalid request pointer
+     *
+     *
+     * Usage example:
+     * \code
+     * ...
+     * // `response` has type `Response` and is declared elsewhere
+     * response.write("<h1>Initial response</h1>");
+     * response.write("<h2>Next response</h2>");
+     * response.write("<h3>Last response</h3>");
+     * response.write(); // Signify the end of our response.
+     * ...
+     * \endcode
+     *
+     *  \sa Response::send()
      */
     esp_err_t write(std::string const& buffer = "");
 
-    /** \brief Get a pointer to the underlying request object.
+    /** \brief Get a pointer to the underlying request struct.
      *
-     * Should be used only if you need to interact directly with the underlying
+     * Should only be used if you need to interact directly with the underlying
      * C API.
      */
     [[nodiscard]] httpd_req_t* get_idf_request() const;

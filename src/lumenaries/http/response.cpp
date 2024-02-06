@@ -1,6 +1,6 @@
 #include "lumenaries/http/response.hpp"
 
-#include <format>
+//#include <format>
 
 namespace lumenaries::http {
 namespace {
@@ -55,38 +55,44 @@ std::string status_to_str(int status)
     case 500:
         return "500 Internal Server Error";
     default:
-        return std::format("{} Unknown", status);
+        //return std::format("{} Unknown", status);
+        return "";
     }
 }
 
 } // namespace
 
-Response::Response(Request& request) : request_{request.request_} {}
+Response::Response(httpd_req_t* request) : idf_request_{request} {}
 
 esp_err_t Response::set_status(int status)
 {
-    return httpd_resp_set_status(request_, status_to_str(status).c_str());
+    return httpd_resp_set_status(idf_request_, status_to_str(status).c_str());
 }
 
 esp_err_t Response::set_content_type(std::string const& value)
 {
-    return httpd_resp_set_type(request_, value.c_str());
+    return httpd_resp_set_type(idf_request_, value.c_str());
 }
 
 esp_err_t
 Response::set_header(std::string const& field, std::string const& value)
 {
-    return httpd_resp_set_hdr(request_, field.c_str(), value.c_str());
+    return httpd_resp_set_hdr(idf_request_, field.c_str(), value.c_str());
 }
 
 esp_err_t Response::send(std::string const& buffer)
 {
-    return httpd_resp_send(request_, buffer.c_str(), buffer.length());
+    return httpd_resp_send(idf_request_, buffer.c_str(), buffer.length());
 }
 
 esp_err_t Response::write(std::string const& buffer)
 {
-    return httpd_resp_send_chunk(request_, buffer.c_str(), buffer.length());
+    return httpd_resp_send_chunk(idf_request_, buffer.c_str(), buffer.length());
+}
+
+httpd_req_t* Response::get_idf_request() const
+{
+    return idf_request_;
 }
 
 } // namespace lumenaries::http

@@ -1,6 +1,8 @@
 #include "lumenaries/http/response.hpp"
 
-//#include <format>
+#include "esp_http_server.h"
+
+#include <string>
 
 namespace lumenaries::http {
 namespace {
@@ -55,7 +57,7 @@ std::string status_to_str(int status)
     case 500:
         return "500 Internal Server Error";
     default:
-        //return std::format("{} Unknown", status);
+        // return std::format("{} Unknown", status);
         return "";
     }
 }

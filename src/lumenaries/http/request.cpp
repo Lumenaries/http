@@ -1,7 +1,8 @@
 #include "lumenaries/http/request.hpp"
 
-#include <array>
-#include <memory>
+#include "esp_http_server.h"
+
+#include <string>
 
 namespace lumenaries::http {
 namespace {
@@ -14,10 +15,11 @@ Request::Request(httpd_req_t* request) : idf_request_{request} {}
 
 std::string Request::get_header_value(std::string const& field) const
 {
+    // Include space for null-terminator
     auto buf_len = httpd_req_get_hdr_value_len(idf_request_, field.c_str()) + 1;
 
     if (buf_len < 2) {
-        // No header found, return empty string
+        // No header found
         return {};
     }
 
@@ -29,10 +31,11 @@ std::string Request::get_header_value(std::string const& field) const
 
 std::string Request::get_query_string() const
 {
+    // Include space for null-terminator
     auto buf_len = httpd_req_get_url_query_len(idf_request_) + 1;
 
     if (buf_len < 2) {
-        // No query string, return empty string
+        // No query string found
         return {};
     }
 
@@ -45,6 +48,10 @@ std::string Request::get_query_string() const
 std::string Request::get_parameter_value(std::string const& name) const
 {
     auto query_string = get_query_string();
+
+    if (query_string.empty()) {
+        return {};
+    }
 
     // Include space for null-terminator
     auto buf_len = httpd_req_get_url_query_len(idf_request_) + 1;

@@ -25,8 +25,14 @@ std::string Request::get_header_value(std::string const& field) const
 
     char buf[buf_len];
 
-    httpd_req_get_hdr_value_str(idf_request_, field.c_str(), buf, buf_len);
-    return std::string{buf};
+    esp_err_t err =
+        httpd_req_get_hdr_value_str(idf_request_, field.c_str(), buf, buf_len);
+
+    if (err == ESP_OK) {
+        return std::string{buf};
+    }
+
+    return {};
 }
 
 std::string Request::get_query_string() const
@@ -41,8 +47,13 @@ std::string Request::get_query_string() const
 
     char buf[buf_len];
 
-    httpd_req_get_url_query_str(idf_request_, buf, buf_len);
-    return std::string{buf};
+    esp_err_t err = httpd_req_get_url_query_str(idf_request_, buf, buf_len);
+
+    if (err == ESP_OK) {
+        return std::string{buf};
+    }
+
+    return {};
 }
 
 std::string Request::get_parameter_value(std::string const& name) const
@@ -62,8 +73,14 @@ std::string Request::get_parameter_value(std::string const& name) const
 
     char buf[buf_len];
 
-    httpd_query_key_value(query_string.c_str(), name.c_str(), buf, buf_len);
-    return std::string{buf};
+    esp_err_t err =
+        httpd_query_key_value(query_string.c_str(), name.c_str(), buf, buf_len);
+
+    if (err == ESP_OK) {
+        return std::string{buf};
+    }
+
+    return {};
 }
 
 std::string Request::get_cookie_val(std::string const& name) const
@@ -71,9 +88,15 @@ std::string Request::get_cookie_val(std::string const& name) const
     auto cookie_size = max_cookie_size;
     char cookie[max_cookie_size];
 
-    httpd_req_get_cookie_val(idf_request_, name.c_str(), cookie, &cookie_size);
+    esp_err_t err = httpd_req_get_cookie_val(
+        idf_request_, name.c_str(), cookie, &cookie_size
+    );
 
-    return std::string{cookie};
+    if (err == ESP_OK) {
+        return std::string{cookie};
+    }
+
+    return {};
 }
 
 httpd_req_t* Request::get_idf_request() const

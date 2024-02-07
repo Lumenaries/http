@@ -57,8 +57,7 @@ std::string status_to_str(int status)
     case 500:
         return "500 Internal Server Error";
     default:
-        // return std::format("{} Unknown", status);
-        return "";
+        return std::to_string(status) + " Unknown";
     }
 }
 

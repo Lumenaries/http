@@ -1,4 +1,4 @@
-menu "lumenaries/http"
+menu "Lumenaries/http"
 
     config LUM_HTTP_MAX_COOKIE_SIZE
         int "Maximum size of largest cookie"

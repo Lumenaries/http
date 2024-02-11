@@ -6,7 +6,7 @@
 
 namespace lumenaries::http {
 
-/** \class Request http/Request lumenaries/http/Request
+/** \class Request "lumenaries/http/request.hpp"
  *  \brief An object representing a client HTTP request.
  *
  * You should only ever interact with this object in the context of an HTTP
@@ -44,7 +44,7 @@ public:
      */
     explicit Request(httpd_req_t* request);
 
-    /** \brief Get the value of a field in the request header
+    /** \brief Get the value of a field in the request header.
      *
      * \note
      *  - %Request header values are purged after a call to Response::send() or
@@ -83,7 +83,7 @@ public:
 
     /** \brief Extract a specific value from the query string.
      *
-     * This will work for strings of the type "param1=val1&param2=val2".
+     * This will work for query strings of the form "param1=val1&param2=val2".
      *
      * \note
      *  - The components of the query string are not URLdecoded. You must apply
@@ -102,12 +102,12 @@ public:
      *
      * \note
      *  - You may need to adjust CONFIG_LUM_HTTP_MAX_COOKIE_SIZE in menuconfig
-     * if you find that your cookie value is being truncated.
+     *    if you find that your cookie value is being truncated.
      *
      * \param name The name of the cookie for which you want the value.
      *
      * \return
-     *  - Value of cookie if it exists in Cookie headers (possibly
+     *  - Value of cookie if it exists in the Cookie headers (possibly
      *    truncated).
      *  - Empty if the cookie does not exist or the Request object is invalid.
      *

@@ -4,7 +4,7 @@ menu "Lumenaries/http"
         int "Maximum size of largest cookie"
         default 512
         help
-            The size of the buffer used to fetch cookie. Too small of a buffer
-            will lead the cookie being truncated.
+            The size of the buffer used to fetch the cookie. Too small of a buffer
+            will lead to the cookie being truncated.
 
 endmenu

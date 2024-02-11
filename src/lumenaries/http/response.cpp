@@ -86,7 +86,7 @@ esp_err_t Response::send(std::string const& buffer)
     return httpd_resp_send(idf_request_, buffer.c_str(), buffer.length());
 }
 
-esp_err_t Response::write(std::string const& buffer)
+esp_err_t Response::write(std::string const& buffer /* = {} */)
 {
     return httpd_resp_send_chunk(idf_request_, buffer.c_str(), buffer.length());
 }

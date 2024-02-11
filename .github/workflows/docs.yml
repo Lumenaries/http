@@ -1,3 +1,4 @@
+# Build code documentation and deploy to "gh-pages" branch
 name: Deploy Docs
 
 # Controls when the workflow will run

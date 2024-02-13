@@ -125,7 +125,7 @@ esp_err_t Response::send()
 
     // did something happen?
     if (err != ESP_OK)
-        ESP_LOGE(PH_TAG, "Send response failed (%s)", esp_err_to_name(err));
+        ESP_LOGE(lib_tag, "Send response failed (%s)", esp_err_to_name(err));
 
     return err;
 }
@@ -150,7 +150,7 @@ esp_err_t Response::sendChunk(uint8_t* chunk, size_t chunksize)
         this->_request->request(), (char*)chunk, chunksize
     );
     if (err != ESP_OK) {
-        ESP_LOGE(PH_TAG, "File sending failed (%s)", esp_err_to_name(err));
+        ESP_LOGE(lib_tag, "File sending failed (%s)", esp_err_to_name(err));
 
         /* Abort sending file */
         httpd_resp_sendstr_chunk(this->_request->request(), NULL);

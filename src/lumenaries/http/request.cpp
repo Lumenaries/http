@@ -91,7 +91,7 @@ const std::string Request::getFilename()
         return filename;
 
     // finally, unknown.
-    ESP_LOGE(PH_TAG, "Did not get a valid filename from the upload.");
+    ESP_LOGE(lib_tag, "Did not get a valid filename from the upload.");
     return "unknown.txt";
 }
 
@@ -255,8 +255,8 @@ esp_err_t Request::redirect(const char* url)
 
 bool Request::hasCookie(const char* key)
 {
-    char cookie[MAX_COOKIE_SIZE];
-    size_t cookieSize = MAX_COOKIE_SIZE;
+    char cookie[CONFIG_LUM_HTTP_MAX_COOKIE_SIZE];
+    size_t cookieSize = CONFIG_LUM_HTTP_MAX_COOKIE_SIZE;
     esp_err_t err =
         httpd_req_get_cookie_val(this->_req, key, cookie, &cookieSize);
 
@@ -264,15 +264,15 @@ bool Request::hasCookie(const char* key)
     if (err == ESP_OK)
         return true;
     else if (err == ESP_ERR_HTTPD_RESULT_TRUNC)
-        ESP_LOGE(PH_TAG, "cookie too large (%d bytes).\n", cookieSize);
+        ESP_LOGE(lib_tag, "cookie too large (%d bytes).\n", cookieSize);
 
     return false;
 }
 
 const std::string Request::getCookie(const char* key)
 {
-    char cookie[MAX_COOKIE_SIZE];
-    size_t cookieSize = MAX_COOKIE_SIZE;
+    char cookie[CONFIG_LUM_HTTP_MAX_COOKIE_SIZE];
+    size_t cookieSize = CONFIG_LUM_HTTP_MAX_COOKIE_SIZE;
     esp_err_t err =
         httpd_req_get_cookie_val(this->_req, key, cookie, &cookieSize);
 
@@ -459,7 +459,7 @@ bool Request::authenticate(const char* username, const char* password)
                 std::string(username) + ':' + _realm + ':' +
     std::string(password)
             );
-            ESP_LOGD(PH_TAG, "Hash of user:realm:pass=%s", _H1);
+            ESP_LOGD(lib_tag, "Hash of user:realm:pass=%s", _H1);
             std::string _H2 = "";
             if (_method == HTTP_GET) {
                 _H2 = md5str(String(F("GET:")) + _uri);
@@ -472,7 +472,7 @@ bool Request::authenticate(const char* username, const char* password)
             } else {
                 _H2 = md5str(String(F("GET:")) + _uri);
             }
-            ESP_LOGD(PH_TAG, "Hash of GET:uri=%s", _H2);
+            ESP_LOGD(lib_tag, "Hash of GET:uri=%s", _H2);
             std::string _responsecheck = "";
             if (authReq.find("qop=auth") != -1 ||
                 authReq.find("qop=\"auth\"") != -1) {
@@ -483,7 +483,7 @@ bool Request::authenticate(const char* username, const char* password)
             } else {
                 _responsecheck = md5str(_H1 + ':' + _nonce + ':' + _H2);
             }
-            ESP_LOGD(PH_TAG, "The Proper response=%s", _responsecheck);
+            ESP_LOGD(lib_tag, "The Proper response=%s", _responsecheck);
             if (_resp == _responsecheck) {
                 authReq = "";
                 return true;

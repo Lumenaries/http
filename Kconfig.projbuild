@@ -1,0 +1,25 @@
+menu "Lumenaries/http"
+
+    config LUM_HTTP_MAX_COOKIE_SIZE
+        int "Maximum size of largest cookie"
+        default 512
+        help
+            The size of the buffer used to fetch the cookie. Too small of a buffer
+            will lead to the cookie being truncated.
+
+
+    config LUM_HTTP_MAX_UPLOAD_SIZE
+        int
+        default 2097152
+        help
+            Some help text.
+
+
+    config LUM_HTTP_MAX_REQUEST_BODY_SIZE
+        int
+        default 16384
+        help
+            Some help text.
+
+
+endmenu

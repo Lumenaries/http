@@ -40,7 +40,7 @@ esp_err_t submit_async_req(httpd_req_t* req, httpd_req_handler_t handler)
     // counting semaphore: if success, we know 1 or
     // more asyncReqTaskWorkers are available.
     if (xSemaphoreTake(worker_ready_count, ticks) == false) {
-        ESP_LOGE(PH_TAG, "No workers are available");
+        ESP_LOGE(lib_tag, "No workers are available");
         httpd_req_async_handler_complete(copy); // cleanup
         return ESP_FAIL;
     }
@@ -48,7 +48,7 @@ esp_err_t submit_async_req(httpd_req_t* req, httpd_req_handler_t handler)
     // Since worker_ready_count > 0 the queue should already have space.
     // But lets wait up to 100ms just to be safe.
     if (xQueueSend(async_req_queue, &async_req, pdMS_TO_TICKS(100)) == false) {
-        ESP_LOGE(PH_TAG, "worker queue is full");
+        ESP_LOGE(lib_tag, "worker queue is full");
         httpd_req_async_handler_complete(copy); // cleanup
         return ESP_FAIL;
     }
@@ -58,7 +58,7 @@ esp_err_t submit_async_req(httpd_req_t* req, httpd_req_handler_t handler)
 
 void async_req_worker_task(void* p)
 {
-    ESP_LOGI(PH_TAG, "starting async req task worker");
+    ESP_LOGI(lib_tag, "starting async req task worker");
 
     while (true) {
 
@@ -70,7 +70,7 @@ void async_req_worker_task(void* p)
         httpd_async_req_t async_req;
         if (xQueueReceive(async_req_queue, &async_req, portMAX_DELAY)) {
 
-            ESP_LOGI(PH_TAG, "invoking %s", async_req.req->uri);
+            ESP_LOGI(lib_tag, "invoking %s", async_req.req->uri);
 
             // call the handler
             async_req.handler(async_req.req);
@@ -78,12 +78,12 @@ void async_req_worker_task(void* p)
             // Inform the server that it can purge the socket used for
             // this request, if needed.
             if (httpd_req_async_handler_complete(async_req.req) != ESP_OK) {
-                ESP_LOGE(PH_TAG, "failed to complete async req");
+                ESP_LOGE(lib_tag, "failed to complete async req");
             }
         }
     }
 
-    ESP_LOGW(PH_TAG, "worker stopped");
+    ESP_LOGW(lib_tag, "worker stopped");
     vTaskDelete(NULL);
 }
 
@@ -96,14 +96,14 @@ void start_async_req_workers(void)
         0
     ); // Initial Count
     if (worker_ready_count == NULL) {
-        ESP_LOGE(PH_TAG, "Failed to create workers counting Semaphore");
+        ESP_LOGE(lib_tag, "Failed to create workers counting Semaphore");
         return;
     }
 
     // create queue
     async_req_queue = xQueueCreate(1, sizeof(httpd_async_req_t));
     if (async_req_queue == NULL) {
-        ESP_LOGE(PH_TAG, "Failed to create async_req_queue");
+        ESP_LOGE(lib_tag, "Failed to create async_req_queue");
         vSemaphoreDelete(worker_ready_count);
         return;
     }
@@ -121,51 +121,10 @@ void start_async_req_workers(void)
         );
 
         if (!success) {
-            ESP_LOGE(PH_TAG, "Failed to start asyncReqWorker");
+            ESP_LOGE(lib_tag, "Failed to start asyncReqWorker");
             continue;
         }
     }
 }
-
-/****
- *
- * This code is backported from the 5.1.x branch
- *
- ****/
-
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
-/* Calculate the maximum size needed for the scratch buffer */
-#define HTTPD_SCRATCH_BUF MAX(HTTPD_MAX_REQ_HDR_LEN, HTTPD_MAX_URI_LEN)
-
-/**
- * @brief   Auxiliary data structure for use during reception and processing
- *          of requests and temporarily keeping responses
- */
-struct httpd_req_aux {
-    struct sock_db* sd;                  /*!< Pointer to socket database */
-    char scratch[HTTPD_SCRATCH_BUF + 1]; /*!< Temporary buffer for our
-                                            operations (1 byte extra for null
-                                            termination) */
-    size_t remaining_len;    /*!< Amount of data remaining to be fetched */
-    char* status;            /*!< HTTP response's status code */
-    char* content_type;      /*!< HTTP response's content type */
-    bool first_chunk_sent;   /*!< Used to indicate if first chunk sent */
-    unsigned req_hdrs_count; /*!< Count of total headers in request packet */
-    unsigned
-        resp_hdrs_count; /*!< Count of additional headers in response packet */
-    struct resp_hdr {
-        const char* field;
-        const char* value;
-    }* resp_hdrs; /*!< Additional headers in response packet */
-    struct http_parser_url url_parse_res; /*!< URL parsing result, used for
-                                             retrieving URL elements */
-#ifdef CONFIG_HTTPD_WS_SUPPORT
-    bool ws_handshake_detect; /*!< WebSocket handshake detection flag */
-    httpd_ws_type_t ws_type;  /*!< WebSocket frame type */
-    bool ws_final;            /*!< WebSocket FIN bit (final frame or not) */
-    uint8_t mask_key[4];      /*!< WebSocket mask key for this payload */
-#endif
-};
 
 } // namespace lumenaries::http

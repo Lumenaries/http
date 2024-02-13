@@ -58,8 +58,7 @@ public:
     const std::string& query(
     ); // returns the request query data (eg /page?foo=bar returns "foo=bar")
     const std::string
-    host(); // returns the requested host (request to http://psychic.local/foo
-            // will return "psychic.local")
+    host();
     const std::string contentType(); // returns the Content-Type header value
     size_t contentLength();          // returns the Content-Length header value
     const std::string& body();       // returns the body of the request

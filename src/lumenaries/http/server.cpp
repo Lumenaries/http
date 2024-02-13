@@ -13,8 +13,8 @@ namespace lumenaries::http {
 
 Server::Server() : _onOpen(NULL), _onClose(NULL)
 {
-    maxRequestBodySize = MAX_REQUEST_BODY_SIZE;
-    maxUploadSize = MAX_UPLOAD_SIZE;
+    maxRequestBodySize = CONFIG_LUM_HTTP_MAX_REQUEST_BODY_SIZE;
+    maxUploadSize = CONFIG_LUM_HTTP_MAX_UPLOAD_SIZE;
 
     defaultEndpoint = new Endpoint(this, HTTP_GET, "");
     onNotFound(Server::defaultNotFoundHandler);
@@ -82,7 +82,7 @@ esp_err_t Server::_start()
     // fire it up.
     ret = _startServer();
     if (ret != ESP_OK) {
-        ESP_LOGE(PH_TAG, "Server start failed (%s)", esp_err_to_name(ret));
+        ESP_LOGE(lib_tag, "Server start failed (%s)", esp_err_to_name(ret));
         return ret;
     }
 
@@ -91,7 +91,7 @@ esp_err_t Server::_start()
         server, HTTPD_404_NOT_FOUND, Server::notFoundHandler
     );
     if (ret != ESP_OK)
-        ESP_LOGE(PH_TAG, "Add 404 handler failed (%s)", esp_err_to_name(ret));
+        ESP_LOGE(lib_tag, "Add 404 handler failed (%s)", esp_err_to_name(ret));
 
     return ret;
 }
@@ -153,7 +153,7 @@ Endpoint* Server::on(const char* uri, http_method method, Handler* handler)
     // Register endpoint with ESP-IDF server
     esp_err_t ret = httpd_register_uri_handler(this->server, &my_uri);
     if (ret != ESP_OK)
-        ESP_LOGE(PH_TAG, "Add endpoint failed (%s)", esp_err_to_name(ret));
+        ESP_LOGE(lib_tag, "Add endpoint failed (%s)", esp_err_to_name(ret));
 
     // save it for later
     _endpoints.push_back(endpoint);
@@ -224,7 +224,7 @@ void Server::onOpen(ClientCallback handler)
 
 esp_err_t Server::openCallback(httpd_handle_t hd, int sockfd)
 {
-    ESP_LOGI(PH_TAG, "New client connected %d", sockfd);
+    ESP_LOGI(lib_tag, "New client connected %d", sockfd);
 
     // get our global server reference
     Server* server = (Server*)httpd_get_global_user_ctx(hd);
@@ -250,7 +250,7 @@ void Server::onClose(ClientCallback handler)
 
 void Server::closeCallback(httpd_handle_t hd, int sockfd)
 {
-    ESP_LOGI(PH_TAG, "Client disconnected %d", sockfd);
+    ESP_LOGI(lib_tag, "Client disconnected %d", sockfd);
 
     Server* server = (Server*)httpd_get_global_user_ctx(hd);
 
@@ -270,7 +270,7 @@ void Server::closeCallback(httpd_handle_t hd, int sockfd)
         // remove it from our list
         server->removeClient(client);
     } else
-        ESP_LOGE(PH_TAG, "No client record %d", sockfd);
+        ESP_LOGE(lib_tag, "No client record %d", sockfd);
 
     // finally close it out.
     close(sockfd);

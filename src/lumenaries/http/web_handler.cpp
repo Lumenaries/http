@@ -25,7 +25,7 @@ esp_err_t WebHandler::handleRequest(Request* request)
     /* Request body cannot be larger than a limit */
     if (request->contentLength() > request->server()->maxRequestBodySize) {
         ESP_LOGE(
-            PH_TAG,
+            lib_tag,
             "Request body too large : %d bytes",
             request->contentLength()
         );

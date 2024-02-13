@@ -9,12 +9,7 @@
 
 namespace lumenaries::http {
 
-#define PH_TAG "psychic"
-
-// version numbers
-#define PSYCHIC_HTTP_VERSION_MAJOR 1
-#define PSYCHIC_HTTP_VERSION_MINOR 1
-#define PSYCHIC_HTTP_VERSION_PATCH 0
+auto constexpr lib_tag = "lumenaries/http";
 
 #ifndef MAX_COOKIE_SIZE
 #define MAX_COOKIE_SIZE 512
@@ -34,10 +29,6 @@ namespace lumenaries::http {
 
 #ifndef MAX_REQUEST_BODY_SIZE
 #define MAX_REQUEST_BODY_SIZE (16 * 1024) // 16K
-#endif
-
-#ifdef ARDUINO
-#include <Arduino.h>
 #endif
 
 enum HTTPAuthMethod { BASIC_AUTH, DIGEST_AUTH };

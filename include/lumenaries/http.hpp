@@ -4,6 +4,7 @@
 #include "lumenaries/http/client.hpp"
 #include "lumenaries/http/core.hpp"
 #include "lumenaries/http/endpoint.hpp"
+#include "lumenaries/http/event_source.hpp"
 #include "lumenaries/http/handler.hpp"
 #include "lumenaries/http/http_status.hpp"
 #include "lumenaries/http/request.hpp"
